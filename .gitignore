@@ -1,0 +1,7 @@
+*.cproject
+*.project
+*.xml
+hls.app
+.settings/
+.apc/
+sol1/
