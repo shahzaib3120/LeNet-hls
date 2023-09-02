@@ -18,6 +18,7 @@
 #include "conv.hpp"
 #include "utils.hpp"
 #include "fc_sw.hpp"
+#include "pool_tb.hpp"
 using namespace hls;
 using namespace std;
 
@@ -29,7 +30,9 @@ int main()
 	// create_memdata();
 	static ap_uint<L0_INPUT_PRECISION> IMAGE[MAX_IMAGES][L0_IFMDim * L0_IFMDim][L0_IFM_Channels];
 	static ap_uint<L0_ACTIVATION_PRECISION> CNV1[MAX_IMAGES][L0_OFMDim][L0_OFMDim][L0_OFM_Channels];
+	static ap_uint<L0_ACTIVATION_PRECISION> POOL1[MAX_IMAGES][L0_OFMDim/2][L0_OFMDim/2][L0_OFM_Channels];
 	static ap_uint<L1_ACTIVATION_PRECISION> CNV2[MAX_IMAGES][L1_OFMDim][L1_OFMDim][L1_OFM_Channels];
+	static ap_uint<L0_ACTIVATION_PRECISION> POOL2[MAX_IMAGES][L1_OFMDim/2][L1_OFMDim/2][L1_OFM_Channels];
 	static ap_uint<L2_ACTIVATION_PRECISION> FC1[MAX_IMAGES][L2_MATRIXH];
 	static ap_uint<L3_ACTIVATION_PRECISION> FC2[MAX_IMAGES][L3_MATRIXH];
 	stream<ap_uint<L0_IFM_Channels * L0_INPUT_PRECISION>> input_stream("input_stream");
@@ -81,7 +84,22 @@ int main()
 	loadFCWeights<L3_WIDTH, L3_MATRIXW, L3_MATRIXH, L3_SIMD, L3_PE>(W4, PARAM::weights_3);
 
 	conv<MAX_IMAGES, L0_IFMDim, L0_OFMDim, L0_IFM_Channels, L0_OFM_Channels, L0_KERNEL_DIM, 1, ap_uint<L0_INPUT_PRECISION>>(IMAGE, W1, CNV1);
-	conv_inter<MAX_IMAGES, L1_IFMDim, L1_OFMDim, L1_IFM_Channels, L1_OFM_Channels, L1_KERNEL_DIM, 1, ap_uint<L1_ACTIVATION_PRECISION>>(CNV1, W2, CNV2);
+
+	// max pool
+//	template<int MAX_IMAGE,
+//		int IFMDim,
+//		int OFMDim,
+//		int FMCh,
+//		int kernel,
+//		int stride,
+//		typename TI>
+//		void pool(TI const img[MAX_IMAGE][IFMDim][IFMDim][FMCh], TI out[MAX_IMAGE][OFMDim][OFMDim][FMCh])
+
+	pool<MAX_IMAGES, L0_OFMDim, L0_OFMDim/2, L0_OFM_Channels, 2, 2, ap_uint<L0_ACTIVATION_PRECISION>>(CNV1, POOL1);
+
+	conv_inter<MAX_IMAGES, L1_IFMDim, L1_OFMDim, L1_IFM_Channels, L1_OFM_Channels, L1_KERNEL_DIM, 1, ap_uint<L1_ACTIVATION_PRECISION>>(POOL1, W2, CNV2);
+
+	pool<MAX_IMAGES, L1_OFMDim, L1_OFMDim/2, L1_OFM_Channels, 2, 2, ap_uint<L1_ACTIVATION_PRECISION>>(CNV2, POOL2);
 
 	static ap_uint<L2_INPUT_PRECISION> IMAGE_FC[MAX_IMAGES][L2_MATRIXW];
 	// flatten the output of conv layer
@@ -89,7 +107,7 @@ int main()
 	// template <unsigned int MAX_IMAGES, unsigned int IFMDim, unsigned int IFMChannels, typename TI>
 	// void flatten(TI input[MAX_IMAGES][IFMChannels][IFMDim][IFMDim], TI output[MAX_IMAGES][IFMChannels * IFMDim * IFMDim])
 
-	flatten<MAX_IMAGES, L1_OFMDim, L1_OFM_Channels, ap_uint<L1_ACTIVATION_PRECISION>>(CNV2, IMAGE_FC);
+	flatten<MAX_IMAGES, L1_OFMDim/2, L1_OFM_Channels, ap_uint<L1_ACTIVATION_PRECISION>>(POOL2, IMAGE_FC);
 
 	// fully connected layers
 

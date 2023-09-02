@@ -26,8 +26,8 @@
 #define L1_WIDTH 1 
 #define L1_IFM_Channels 16 
 #define L1_OFM_Channels 16 
-#define L1_IFMDim 8 
-#define L1_OFMDim 6 
+#define L1_IFMDim 4 
+#define L1_OFMDim 2 
 #define L1_STRIDE 1 
 #define L1_INPUT_PRECISION 8 
 #define L1_TILE 36 
@@ -36,13 +36,13 @@
  // Fully Connected Layer L2 
 
 
-#define L2_MATRIXW 576 
+#define L2_MATRIXW 16 
 #define L2_MATRIXH 64 
 #define L2_SIMD 16 
 #define L2_PE 8 
 #define L2_MMV 1 
 #define L2_WIDTH 1 
-#define L2_TILE 288 
+#define L2_TILE 8 
 #define L2_INPUT_PRECISION 8 
 #define L2_ACTIVATION_PRECISION 8 
 
