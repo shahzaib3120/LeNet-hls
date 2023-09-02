@@ -26,7 +26,6 @@
 #   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
 #   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#  
 import numpy as np
 import os
 import sys
@@ -40,6 +39,7 @@ outFileWeights.write("\n\n//Convolutional Layers\n\n")
 
 outFileWeights.write("namespace PARAM{ \n")
 outFileConfig = open("config.h" , "wt")
+
 
 # kernel_dim = 3
 # stride = 1
@@ -57,19 +57,20 @@ outFileConfig = open("config.h" , "wt")
 # mmv=1
 
 conv_layers = 2
-fc_layers = 0
+fc_layers = 2
 # [kernel_dim, stride, input_precision, ifm_channels, ofm_channels, ifm_dimension, ofm_dimension, activation_precision, expand, simd, pe, w_precision, mmv]
 # [k, s, ip, ifmc, ofmc, ifmd, ofmd, ap, e, simd, pe, wp, mmv]
 conv_params = [
 #	[k,	s,	ip,	ifmc,	ofmc,	ifmd,	ofmd,	ap,	e,	simd,	pe,	wp,	mmv]
-	[3,	1, 	8,	3,		16,		10,		8,		8, 1,	3,		2, 8,	1],
-	[3,	1, 	8,	16,		16,		8,		6,		8, 1,	2,		2, 8,	1],
+	[3,	1, 	8,	3,		16,		10,		8,		8, 1,	3,		8, 1,	1],
+	[3,	1, 	8,	16,		16,		8,		6,		8, 1,	8,		8, 1,	1],
 ]
 
-# fc_params = [
-# #	[MatrixW, MatrixH, SIMD, PE, MMV, IP, WP, AP]
-# 	[576, 10, 2, 2, 1, 8, 8, 8],
-# ]
+fc_params = [
+#	[MatrixW, MatrixH, SIMD, PE, MMV, IP, WP, AP]
+	[576, 64, 16, 8, 1, 8, 1, 8],
+	[64, 10, 16, 10, 1, 8, 1, 8],
+]
 
 for layer in range(conv_layers):
 	kernel_dim = conv_params[layer][0]
